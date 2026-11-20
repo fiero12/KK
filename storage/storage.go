@@ -3,6 +3,7 @@ package storage
 import (
 	"sync"
 	"financialExchange/enum"
+	"log/slog"
 )
 
 // sync.Mutex полностью блокирует доступ и для чтения и для записи. 
@@ -11,6 +12,7 @@ import (
 type Store[K comparable, V any] struct {
 	mutex sync.RWMutex
 	items map[K]V
+	logger *slog.Logger
 }
 
 func NewStore[K comparable, V any](capacity int) * Store[K, V]{
@@ -51,7 +53,7 @@ func convertToOrder(value any) enum.Order {
 	//так как value типа any внем может лежать что угодно  ив том числе ордер
 }
 
-func (store *Store[K, V]) Update(key K, modif func(V) V) (V, bool) {
+func (store *Store[K, V]) Update(key K, modif func(V) V, logger *slog.Logger) (V, bool) {
 	store.mutex.Lock()//ставим блокировку
 	defer store.mutex.Unlock()
 	// гарантируем то что после выхода из функции блокировка снимается
@@ -66,7 +68,7 @@ func (store *Store[K, V]) Update(key K, modif func(V) V) (V, bool) {
 	// var UpdateValue enum.Order
 	UpdatedValue := modif(value)
 	//создаем переменную UpdateValue и передаем в неё значение из modif 
-	enum.LogOrderState(convertToOrder(UpdatedValue), logger)
+	enum.LogOrderState(convertToOrder(UpdatedValue), store.logger)
 	// конвертируем updatevalue в ордер а затем логируем 
 	return UpdatedValue, true// возвращаем updatevalue и true
 	//дальше выход из функции
