@@ -2,6 +2,7 @@ package storage
 
 import (
 	"sync"
+	"financialExchange/enum"
 )
 
 // sync.Mutex полностью блокирует доступ и для чтения и для записи. 
@@ -43,6 +44,11 @@ func (store *Store[K, V]) Delete(key K, value V) bool {
 
 	delete(store.items, key)
 	return true
+}
+
+func convertToOrder(value any) enum.Order {
+	return value.(enum.Order)// извлекаем ордер из value 
+	//так как value типа any внем может лежать что угодно  ив том числе ордер
 }
 
 func (store *Store[K, V]) Update(key K, modif func(V) V) (V, bool) {
