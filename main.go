@@ -74,43 +74,58 @@ func main(){
 	fmt.Scanln()
 
 func matchOrders(storage *storage.Store[uuid.UUID, enum.order], buyID, sellID, logger *slog.logger){
-	buyOrder, buyOk := storage.Get(buyID)
-	sellOrder, sellOk := storage.Get(sellID)
+	//достаем сделки из хранилища и потверждение успеха находки
+	buyOrder, buyOk := storage.Get(buyID)// покупка и потверждение её находки
+	sellOrder, sellOk := storage.Get(sellID)// продажа и потверждение её находки
 
-	if !buyOk || !sellOk{
-		logger.Error("Возникли ошибки с поиском заказов в хранилище")
+	if !buyOk || !sellOk{// проверка на существование 
+		logger.Error("Возникли ошибки с поиском заказов в хранилище")//логируем ошибку
 		return
+		// выходим из функции
 	}
 
-	if buyOrder.Symbo != sellOrder.Symbo{
-		logger.Warn("Сделка не может быть осуществлена в связи с несовпадением валют")
+	if buyOrder.Symbo != sellOrder.Symbo{// проверка на совпадение валюты
+		logger.Warn("Сделка не может быть осуществлена в связи с несовпадением валют")//логируем предупреждение
 		return
+		// выходим из функции
 	}
 
 	if buyOrder.Status == enum.OrderStatusFilled || sellOrder.Status == enum.OrderStatusFilled{
-		logger.Warn("Заказы уже завершены")
+		// проверка статуса
+		logger.Warn("Заказы уже завершены")//логируем предупреждение
 		return
+		// выходим из функции
 	}
 		
-	if buyOrder.Price < sellOrder.Price{
-		logger.Info("Сделка не может быть совершена из-за несовпадения цен")
+	if buyOrder.Price < sellOrder.Price{// проверка цен
+		logger.Info("Сделка не может быть совершена из-за несовпадения цен")//логируем инфо
 		return
+		// выходим из функции
 	}
 		
 	quantityTrade := min(buyOrder.Remaining(), sellOrder.Remaining())
+	// вычисляем объем сделки
 
 	updatedBuyOrder, ok:= storage.Update(buyID, modifiers.ModifierForOrder(quantityTrade))
+	// обновление сделки на покупку
 
-	if !ok{
-		logger.Error("Произошла ошибка при обновлении buyOrder")
+	if !ok{// обновление провалилось
+		logger.Error("Произошла ошибка при обновлении buyOrder")// логируем ошибку
 	}
 
 	updatedSellOrder, ok:= storage.Update(sellID, modifiers.ModifierForOrder(quantityTrade))
+	// обновление сделки на продажу
+		if !ok{// обновление провалилось
+		logger.Error("Произошла ошибка при обновлении sellOrder")// логируем ошибку
+	}
 
 	logger.Info("Заявки обновлены","buy_order", updatedBuyOrder, "sell_order", updatedSellOrder)
+	// логируем успешно обновление сделок
 	logger.Info("Сделка успешно проведена",
 				slog.Float64("quantity", quantityTrade),
 				slog.Any("buy_order", updatedBuyOrder),
 				slog.Any("sell_order", updatedSellOrder),
-			)
+			)// логируем изменения вроде
+			// объем сделки
+			// обновленные сделки
 }
