@@ -103,16 +103,30 @@ func (order *Order) IsActive() bool {
 	return order.Status == OrderStatusNew || order.Status == OrderStatusPartiallyFilled
 }
 
-type Trade struct { 
-	ID 			uuid.UUID
-	Symbol 		string
-	BuyOrderID 	uuid.UUID
+type Trade struct {
+	ID          uuid.UUID
+	Symbol      string
+	BuyOrderID  uuid.UUID
 	SellOrderID uuid.UUID
-	BuyerID 	uuid.UUID
-	SellerID 	uuid.UUID
-	Price 		float64
-	Quantity 	float64
-	ExecutedAt 	time.Time
+	BuyerID     uuid.UUID
+	SellerID    uuid.UUID
+	Price       float64
+	Quantity    float64
+	ExecutedAt  time.Time
+}
+
+func (trade Trade) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.String("id", trade.ID.String()),
+		slog.String("symbol", trade.Symbol),
+		slog.String("buy_order_id", trade.BuyOrderID.String()),
+		slog.String("sell_order_id", trade.SellOrderID.String()),
+		slog.String("buyer_id", trade.BuyerID.String()),
+		slog.String("seller_id", trade.SellerID.String()),
+		slog.Float64("price", trade.Price),
+		slog.Float64("quantity", trade.Quantity),
+		slog.Time("executed_at", trade.ExecutedAt),
+	)
 }
 
 type Position struct {

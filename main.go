@@ -22,6 +22,9 @@ func main(){
 
 	orderBook := storage.NewStore[uuid.UUID, enum.Order](10)
 
+	tradeBook := storage.NewStore[uuid.UUID, enum.Trade](10)
+
+
 	uuidOrder1 := uuid.NewV7()
 	uuidOrder2 := uuid.NewV7()
 
